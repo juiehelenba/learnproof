@@ -5,19 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class AiChatMessage extends Model
+class AiInteraction extends Model
 {
     protected $fillable = [
         'user_id',
         'course_id',
-        'role',
-        'content',
+        'user_message_id',
+        'assistant_message_id',
+        'question',
+        'answer',
+        'status',
         'provider',
         'model',
         'used_fallback',
         'latency_ms',
-        'prompt_tokens',
-        'completion_tokens',
+        'context_chars',
+        'context_snapshot',
         'meta',
     ];
 
@@ -25,6 +28,7 @@ class AiChatMessage extends Model
     {
         return [
             'used_fallback' => 'boolean',
+            'context_snapshot' => 'array',
             'meta' => 'array',
         ];
     }
@@ -37,5 +41,15 @@ class AiChatMessage extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function userMessage(): BelongsTo
+    {
+        return $this->belongsTo(AiChatMessage::class, 'user_message_id');
+    }
+
+    public function assistantMessage(): BelongsTo
+    {
+        return $this->belongsTo(AiChatMessage::class, 'assistant_message_id');
     }
 }

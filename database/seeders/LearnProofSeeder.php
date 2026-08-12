@@ -12,14 +12,22 @@ class LearnProofSeeder extends Seeder
 {
     public function run(): void
     {
-        $course = Course::create([
-            'title' => 'Fundamentos de IA Generativa',
-            'slug' => 'fundamentos-ia-generativa',
-            'description' => 'Aprenda os conceitos essenciais de IA generativa, prompts e ética — com quiz adaptativo e certificado verificável na blockchain.',
-            'thumbnail' => null,
-            'passing_score' => 70,
-            'is_published' => true,
-        ]);
+        $course = Course::query()->where('slug', 'fundamentos-ia-generativa')->first();
+
+        if (! $course) {
+            $course = Course::query()->create([
+                'title' => 'Fundamentos de IA Generativa',
+                'slug' => 'fundamentos-ia-generativa',
+                'description' => 'Aprenda os conceitos essenciais de IA generativa, prompts e ética — com quiz adaptativo e certificado verificável na blockchain.',
+                'thumbnail' => null,
+                'passing_score' => 70,
+                'is_published' => true,
+            ]);
+        }
+
+        if ($course->lessons()->exists()) {
+            return;
+        }
 
         $lessons = [
             [

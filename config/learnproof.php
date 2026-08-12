@@ -9,6 +9,9 @@ return [
         'api_key' => env('OPENAI_API_KEY'),
         'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
         'max_history' => (int) env('AI_MAX_HISTORY', 20),
+        'timeout' => (int) env('AI_TIMEOUT', 30),
+        'context_cache_ttl' => (int) env('AI_CONTEXT_CACHE_TTL', 600),
+        'lesson_excerpt_chars' => (int) env('AI_LESSON_EXCERPT_CHARS', 1200),
     ],
 
     'blockchain' => [

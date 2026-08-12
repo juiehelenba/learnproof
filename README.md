@@ -1,32 +1,35 @@
 # LearnProof
 
-Plataforma de microcursos com quiz, certificado verificável, registro blockchain (mock/real) e tutor de IA contextualizado.
+Plataforma SaaS de microcursos com quiz, certificado verificável, blockchain (mock/real) e tutor de IA contextualizado.
 
-Documentação completa do produto: [`PROJETO.md`](PROJETO.md).
+Documentação de produto: [`PROJETO.md`](PROJETO.md).
+
+## Destaque — Tutor de IA (Course → Context → Tutor)
+
+1. Aluno pergunta algo no contexto de um curso  
+2. Sistema identifica o curso e monta o **contexto pedagógico** (aulas + descrição, com cache)  
+3. Envia prompt + histórico para o modelo (OpenAI)  
+4. Persiste mensagens, registra **interação** (`ai_interactions`), dispara event/job/notification e logs estruturados  
 
 ## Funcionalidades
 
-- Catálogo de cursos, matrícula e progresso de aulas
-- Quiz de fixação com nota mínima para aprovação
-- Certificado com UUID e página pública de verificação
-- Ancoragem blockchain do hash do certificado (modo mock por padrão)
-- Tutor de IA por curso (OpenAI opcional; sem chave, modo demonstração)
+- Catálogo, matrícula, progresso de aulas, quiz e certificado verificável
+- **API REST versionada** em `/api/v1` (Sanctum)
+- Roles: `admin`, `instructor`, `student` (policies + middleware)
+- Form Requests, Services, Jobs, Events/Listeners, Notifications
+- Cache de contexto do curso, tratamento JSON de exceções e logs estruturados
 
 ## Stack
 
 | Camada | Tecnologia |
 |--------|------------|
 | Backend | PHP 8.3+, Laravel 13 |
-| Auth | Laravel Breeze |
+| Auth Web | Laravel Breeze |
+| Auth API | Laravel Sanctum |
 | Frontend | Blade, Tailwind CSS, Vite |
-| Banco | SQLite (padrão) ou MySQL |
+| Banco | SQLite (dev) / MySQL ou PostgreSQL |
+| Fila | Database queue |
 | Testes | Pest PHP |
-
-## Requisitos
-
-- PHP >= 8.3
-- Composer
-- Node.js >= 18
 
 ## Instalação
 
@@ -40,35 +43,62 @@ php artisan key:generate
 php artisan migrate:fresh --seed
 npm install
 npm run build
-```
-
-Desenvolvimento (servidor + fila + logs + Vite):
-
-```bash
 composer run dev
 ```
 
-App em `http://localhost:8000`.
+App: `http://localhost:8000`
 
-## Conta de demonstração
+Para MySQL/PostgreSQL, ajuste `DB_CONNECTION` e credenciais no `.env` antes do migrate.
 
-| Campo | Valor |
-|-------|-------|
-| E-mail | `aluno@learnproof.test` |
-| Senha | `password` |
-| Curso demo | `/cursos/fundamentos-ia-generativa` |
+## Contas demo
 
-## IA e blockchain (opcional)
+| Papel | E-mail | Senha |
+|-------|--------|-------|
+| Aluno (matriculado) | `aluno@learnproof.test` | `password` |
+| Instrutor | `instrutor@learnproof.test` | `password` |
+| Admin | `admin@learnproof.test` | `password` |
 
-No `.env` (veja também `.env.example`):
+Curso demo: `/cursos/fundamentos-ia-generativa`
 
-```env
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-4o-mini
-BLOCKCHAIN_MODE=mock
+## API v1
+
+```bash
+# Login
+curl -X POST http://localhost:8000/api/v1/login \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"aluno@learnproof.test","password":"password","device_name":"cli"}'
+
+# Tutor (Bearer token)
+curl -X POST http://localhost:8000/api/v1/courses/fundamentos-ia-generativa/ai/chat \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer SEU_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"message":"O que é um prompt?"}'
 ```
 
-Sem `OPENAI_API_KEY`, o tutor responde em modo demo.
+Principais rotas:
+
+| Método | Rota | Auth |
+|--------|------|------|
+| POST | `/api/v1/login` | — |
+| GET | `/api/v1/me` | Sanctum |
+| GET | `/api/v1/courses` | — |
+| GET | `/api/v1/courses/{slug}` | — |
+| GET | `/api/v1/courses/{slug}/ai/history` | Sanctum + matrícula |
+| POST | `/api/v1/courses/{slug}/ai/chat` | Sanctum + matrícula |
+
+## IA (opcional)
+
+```env
+AI_ENABLED=true
+AI_PROVIDER=openai
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-4o-mini
+AI_CONTEXT_CACHE_TTL=600
+```
+
+Sem chave, o tutor responde em **modo demonstração** e registra a interação mesmo assim.
 
 ## Licença
 
