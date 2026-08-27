@@ -63,7 +63,7 @@ class QuizController extends Controller
 
             return redirect()
                 ->route('certificates.show', $certificate)
-                ->with('status', 'Parabéns! Você foi aprovado e seu certificado de conclusão já está disponível — com registro verificável.');
+                ->with('status', 'Parabéns! Você foi aprovado. Seu certificado foi emitido e o registro na blockchain será confirmado em instantes.');
         }
 
         return redirect()

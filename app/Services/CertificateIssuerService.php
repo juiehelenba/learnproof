@@ -49,7 +49,7 @@ class CertificateIssuerService
             ],
         ]);
 
-        $this->blockchain->anchor($certificate);
+        $this->blockchain->queueAnchor($certificate);
 
         return $certificate->fresh();
     }

@@ -2,21 +2,136 @@
 
 namespace App\Services;
 
+use App\Jobs\AnchorCertificateJob;
 use App\Models\Certificate;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 class BlockchainAnchorService
 {
-    public function anchor(Certificate $certificate): string
+    public function queueAnchor(Certificate $certificate): void
     {
-        $mode = config('learnproof.blockchain.mode', 'mock');
+        if (! $this->isRealMode()) {
+            $this->mockAnchor($certificate);
 
-        if ($mode === 'mock' || ! config('learnproof.blockchain.enabled')) {
+            return;
+        }
+
+        AnchorCertificateJob::dispatch($certificate);
+    }
+
+    public function anchorOnChain(Certificate $certificate): string
+    {
+        if (! $this->isRealMode()) {
             return $this->mockAnchor($certificate);
         }
 
-        // Fase 2: integrar contrato inteligente via RPC (Polygon, Base, etc.)
-        return $this->mockAnchor($certificate);
+        $txHash = $this->anchorHash($certificate->content_hash);
+
+        if ($txHash !== '') {
+            $certificate->update([
+                'blockchain_tx_hash' => $txHash,
+                'blockchain_network' => config('learnproof.blockchain.network'),
+            ]);
+
+            Log::info('Certificado ancorado na blockchain', [
+                'uuid' => $certificate->uuid,
+                'tx_hash' => $txHash,
+            ]);
+        }
+
+        return $txHash;
+    }
+
+    public function anchorHash(string $contentHash): string
+    {
+        $this->ensureConfigured();
+
+        $result = $this->runCli('anchor', $contentHash);
+
+        if (($result['status'] ?? null) === 'already_anchored') {
+            return '';
+        }
+
+        $txHash = $result['txHash'] ?? null;
+
+        if (! is_string($txHash) || ! str_starts_with($txHash, '0x')) {
+            throw new RuntimeException('Resposta inválida ao ancorar certificado na blockchain.');
+        }
+
+        return $txHash;
+    }
+
+    public function verifyHashOnChain(string $contentHash): bool
+    {
+        if (! $this->isRealMode()) {
+            return false;
+        }
+
+        $result = $this->runCli('verify', $contentHash);
+
+        return ($result['anchored'] ?? false) === true;
+    }
+
+    public function verifyOnChain(Certificate $certificate): bool
+    {
+        if (! hash_equals($certificate->content_hash, $this->expectedHash($certificate))) {
+            return false;
+        }
+
+        if (! $certificate->isAnchoredOnChain()) {
+            return false;
+        }
+
+        if ($this->isMockNetwork($certificate->blockchain_network)) {
+            return true;
+        }
+
+        if (! $this->isRealMode()) {
+            return true;
+        }
+
+        try {
+            return $this->verifyHashOnChain($certificate->content_hash);
+        } catch (\Throwable $e) {
+            Log::warning('Falha na verificação on-chain; usando fallback local', [
+                'uuid' => $certificate->uuid,
+                'error' => $e->getMessage(),
+            ]);
+
+            return true;
+        }
+    }
+
+    public function expectedHash(Certificate $certificate): string
+    {
+        $payload = implode('|', [
+            $certificate->uuid,
+            $certificate->user_id,
+            $certificate->course_id,
+            $certificate->issued_at->toIso8601String(),
+        ]);
+
+        return hash('sha256', $payload);
+    }
+
+    public function isRealMode(): bool
+    {
+        return config('learnproof.blockchain.enabled')
+            && config('learnproof.blockchain.mode') === 'evm';
+    }
+
+    public function explorerTxUrl(?string $txHash): ?string
+    {
+        if (blank($txHash) || ! str_starts_with($txHash, '0x') || strlen($txHash) !== 66) {
+            return null;
+        }
+
+        $template = config('learnproof.blockchain.explorer_tx_url');
+
+        return $template ? sprintf($template, $txHash) : null;
     }
 
     private function mockAnchor(Certificate $certificate): string
@@ -31,31 +146,61 @@ class BlockchainAnchorService
         return $txHash;
     }
 
-    public function verifyOnChain(Certificate $certificate): bool
+    private function ensureConfigured(): void
     {
-        if (! $certificate->isAnchoredOnChain()) {
-            return false;
+        foreach (['rpc_url', 'contract_address', 'wallet_private_key'] as $key) {
+            if (blank(config("learnproof.blockchain.{$key}"))) {
+                throw new RuntimeException("Blockchain EVM não configurada: learnproof.blockchain.{$key}");
+            }
         }
 
-        if (str_starts_with($certificate->blockchain_network ?? '', 'mock')) {
-            return hash_equals(
-                $certificate->content_hash,
-                $this->expectedHash($certificate)
+        if (! is_dir(base_path('blockchain/node_modules'))) {
+            throw new RuntimeException(
+                'Dependências blockchain não instaladas. Execute: cd blockchain && npm install'
             );
         }
-
-        return true;
     }
 
-    public function expectedHash(Certificate $certificate): string
+    /**
+     * @return array<string, mixed>
+     */
+    private function runCli(string $command, string $contentHash): array
     {
-        $payload = implode('|', [
-            $certificate->uuid,
-            $certificate->user_id,
-            $certificate->course_id,
-            $certificate->issued_at->toIso8601String(),
-        ]);
+        $cliPath = base_path('blockchain/cli.mjs');
 
-        return hash('sha256', $payload);
+        $result = Process::path(base_path('blockchain'))
+            ->timeout((int) config('learnproof.blockchain.timeout', 120))
+            ->env([
+                'BLOCKCHAIN_RPC_URL' => config('learnproof.blockchain.rpc_url'),
+                'BLOCKCHAIN_WALLET_PRIVATE_KEY' => config('learnproof.blockchain.wallet_private_key'),
+                'BLOCKCHAIN_CONTRACT_ADDRESS' => config('learnproof.blockchain.contract_address'),
+            ])
+            ->run(['node', $cliPath, $command, $contentHash]);
+
+        $output = trim($result->output());
+        $errorOutput = trim($result->errorOutput());
+
+        $decoded = json_decode($output, true);
+
+        if (! is_array($decoded)) {
+            $message = $errorOutput ?: $output ?: 'Erro desconhecido ao executar CLI blockchain.';
+
+            throw new RuntimeException($message);
+        }
+
+        if (isset($decoded['error'])) {
+            throw new RuntimeException($decoded['error']);
+        }
+
+        if (! $result->successful()) {
+            throw new RuntimeException($errorOutput ?: 'Comando blockchain falhou.');
+        }
+
+        return $decoded;
+    }
+
+    private function isMockNetwork(?string $network): bool
+    {
+        return str_starts_with($network ?? '', 'mock');
     }
 }

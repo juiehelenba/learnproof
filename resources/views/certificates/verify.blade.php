@@ -44,8 +44,18 @@
             </div>
             @if ($certificate->blockchain_tx_hash)
             <div>
-                <dt class="text-gray-500 text-xs uppercase tracking-wide">Registro blockchain</dt>
+                <dt class="text-gray-500 text-xs uppercase tracking-wide">Registro blockchain ({{ $certificate->blockchain_network }})</dt>
                 <dd class="mt-0.5 font-mono text-xs break-all text-gray-700 dark:text-gray-300">{{ $certificate->blockchain_tx_hash }}</dd>
+                @if ($explorerUrl ?? null)
+                    <dd class="mt-2">
+                        <a href="{{ $explorerUrl }}" class="text-indigo-600 hover:underline" target="_blank" rel="noopener">Ver no Polygonscan →</a>
+                    </dd>
+                @endif
+            </div>
+            @elseif ($blockchainPending ?? false)
+            <div>
+                <dt class="text-gray-500 text-xs uppercase tracking-wide">Registro blockchain</dt>
+                <dd class="mt-0.5 text-amber-600">Em processamento...</dd>
             </div>
             @endif
         </dl>

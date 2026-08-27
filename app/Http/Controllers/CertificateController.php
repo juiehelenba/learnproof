@@ -21,6 +21,8 @@ class CertificateController extends Controller
         return view('certificates.show', [
             'certificate' => $certificate,
             'verified' => $this->blockchain->verifyOnChain($certificate),
+            'explorerUrl' => $certificate->explorerTxUrl(),
+            'blockchainPending' => $certificate->isBlockchainPending(),
         ]);
     }
 
@@ -31,6 +33,8 @@ class CertificateController extends Controller
         return view('certificates.verify', [
             'certificate' => $certificate,
             'verified' => $this->blockchain->verifyOnChain($certificate),
+            'explorerUrl' => $certificate->explorerTxUrl(),
+            'blockchainPending' => $certificate->isBlockchainPending(),
         ]);
     }
 

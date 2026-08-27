@@ -21,6 +21,8 @@ return [
         'rpc_url' => env('BLOCKCHAIN_RPC_URL'),
         'contract_address' => env('BLOCKCHAIN_CONTRACT_ADDRESS'),
         'wallet_private_key' => env('BLOCKCHAIN_WALLET_PRIVATE_KEY'),
+        'explorer_tx_url' => env('BLOCKCHAIN_EXPLORER_TX_URL', 'https://amoy.polygonscan.com/tx/%s'),
+        'timeout' => (int) env('BLOCKCHAIN_TIMEOUT', 120),
     ],
 
     'certificate' => [

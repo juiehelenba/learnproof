@@ -20,6 +20,11 @@ Thumbs.db
 
 /auth.json
 /node_modules
+/blockchain/node_modules
+/blockchain/cache
+/blockchain/artifacts
+/blockchain/typechain-types
+/blockchain/.env
 /vendor
 
 /public/build

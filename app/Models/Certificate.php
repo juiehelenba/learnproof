@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\BlockchainAnchorService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -49,5 +50,18 @@ class Certificate extends Model
     public function isAnchoredOnChain(): bool
     {
         return filled($this->blockchain_tx_hash);
+    }
+
+    public function isBlockchainPending(): bool
+    {
+        return config('learnproof.blockchain.mode') === 'evm'
+            && config('learnproof.blockchain.enabled')
+            && blank($this->blockchain_tx_hash)
+            && ! str_starts_with($this->blockchain_network ?? '', 'mock');
+    }
+
+    public function explorerTxUrl(): ?string
+    {
+        return app(BlockchainAnchorService::class)->explorerTxUrl($this->blockchain_tx_hash);
     }
 }

@@ -42,10 +42,28 @@
                         <dt class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Hash de integridade (SHA-256)</dt>
                         <dd class="mt-1 font-mono text-xs break-all text-gray-700 dark:text-gray-300">{{ $certificate->content_hash }}</dd>
                     </div>
+                    @if ($blockchainPending ?? false)
+                    <div class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-800 dark:text-amber-200">
+                        Registro na blockchain em processamento. Atualize a página em alguns instantes.
+                        <span class="block text-xs mt-1 opacity-80">Certifique-se de que o worker de filas está ativo: <code>php artisan queue:listen</code></span>
+                    </div>
+                    @endif
                     @if ($certificate->blockchain_tx_hash)
                     <div>
-                        <dt class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Registro blockchain</dt>
+                        <dt class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Registro blockchain ({{ $certificate->blockchain_network }})</dt>
                         <dd class="mt-1 font-mono text-xs break-all text-gray-700 dark:text-gray-300">{{ $certificate->blockchain_tx_hash }}</dd>
+                        @if ($explorerUrl ?? null)
+                            <dd class="mt-2">
+                                <a href="{{ $explorerUrl }}" class="text-indigo-600 dark:text-indigo-400 hover:underline" target="_blank" rel="noopener">
+                                    Ver transação no Polygonscan →
+                                </a>
+                            </dd>
+                        @endif
+                    </div>
+                    @elseif (! ($blockchainPending ?? false))
+                    <div>
+                        <dt class="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Registro blockchain</dt>
+                        <dd class="mt-1 text-gray-500">Modo simulado (mock)</dd>
                     </div>
                     @endif
                     <div>
