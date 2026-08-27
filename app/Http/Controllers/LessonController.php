@@ -18,13 +18,26 @@ class LessonController extends Controller
             abort(404);
         }
 
+        $course->load('lessons');
         $enrollment = $this->requireEnrollment($course);
 
         $completedLessonIds = $enrollment->lessonProgress()
             ->pluck('lesson_id')
             ->all();
 
-        return view('lessons.show', compact('course', 'lesson', 'enrollment', 'completedLessonIds'));
+        $nextLesson = $course->lessons()
+            ->where('sort_order', '>', $lesson->sort_order)
+            ->orderBy('sort_order')
+            ->first();
+
+        $previousLesson = $course->lessons()
+            ->where('sort_order', '<', $lesson->sort_order)
+            ->orderByDesc('sort_order')
+            ->first();
+
+        return view('lessons.show', compact(
+            'course', 'lesson', 'enrollment', 'completedLessonIds', 'nextLesson', 'previousLesson'
+        ));
     }
 
     public function complete(Request $request, Course $course, Lesson $lesson): RedirectResponse
@@ -52,12 +65,12 @@ class LessonController extends Controller
         if ($nextLesson) {
             return redirect()
                 ->route('lessons.show', [$course, $nextLesson])
-                ->with('status', 'Aula concluída! Próxima aula liberada.');
+                ->with('status', 'Ótimo! Aula concluída. Continue para a próxima ou revise o conteúdo quando quiser.');
         }
 
         return redirect()
             ->route('courses.show', $course)
-            ->with('status', 'Parabéns! Todas as aulas concluídas. Faça o quiz para obter seu certificado.');
+            ->with('status', 'Excelente! Você concluiu todas as aulas. Agora faça a avaliação final para receber seu certificado.');
     }
 
     private function requireEnrollment(Course $course): Enrollment

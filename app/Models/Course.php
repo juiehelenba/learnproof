@@ -61,4 +61,9 @@ class Course extends Model
     {
         return $this->hasMany(AiInteraction::class);
     }
+
+    public function totalDurationMinutes(): int
+    {
+        return (int) $this->lessons()->sum('duration_minutes');
+    }
 }

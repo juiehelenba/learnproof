@@ -22,14 +22,14 @@ class QuizController extends Controller
         $quiz = $course->quiz;
 
         if (! $quiz) {
-            return redirect()->route('courses.show', $course)->with('error', 'Este curso ainda não tem quiz.');
+            return redirect()->route('courses.show', $course)->with('error', 'Este curso ainda não possui avaliação final configurada.');
         }
 
         $enrollment = auth()->user()->enrollmentFor($course);
 
         if (! $enrollment?->allLessonsCompleted()) {
             return redirect()->route('courses.show', $course)
-                ->with('error', 'Conclua todas as aulas antes do quiz.');
+                ->with('error', 'Você precisa concluir todas as aulas antes de fazer a avaliação final.');
         }
 
         return view('quizzes.show', compact('course', 'quiz'));
@@ -47,7 +47,7 @@ class QuizController extends Controller
         $enrollment = auth()->user()->enrollmentFor($course);
 
         if (! $enrollment?->allLessonsCompleted()) {
-            return back()->with('error', 'Conclua todas as aulas antes do quiz.');
+            return back()->with('error', 'Você precisa concluir todas as aulas antes de fazer a avaliação final.');
         }
 
         $validated = $request->validate([
@@ -63,11 +63,11 @@ class QuizController extends Controller
 
             return redirect()
                 ->route('certificates.show', $certificate)
-                ->with('status', 'Aprovado! Seu certificado foi emitido e registrado na blockchain.');
+                ->with('status', 'Parabéns! Você foi aprovado e seu certificado de conclusão já está disponível — com registro verificável.');
         }
 
         return redirect()
             ->route('quizzes.show', $course)
-            ->with('error', "Nota {$attempt->score}%. Mínimo: {$quiz->passing_score}%. Tente novamente.");
+            ->with('error', "Sua nota foi {$attempt->score}%. É necessário atingir no mínimo {$quiz->passing_score}% para aprovação. Revise as aulas e tente novamente.");
     }
 }

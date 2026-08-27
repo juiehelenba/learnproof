@@ -8,43 +8,53 @@
 </head>
 <body class="font-sans antialiased bg-gray-100 dark:bg-gray-900 min-h-screen flex items-center justify-center p-6">
     <div class="max-w-lg w-full bg-white dark:bg-gray-800 shadow-lg rounded-xl p-8">
-        <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">Verificação de Certificado</h1>
-        <p class="mt-2 text-sm text-gray-500">{{ config('learnproof.name') }}</p>
+        <p class="text-xs font-medium text-indigo-600 uppercase tracking-wide">{{ config('learnproof.name') }}</p>
+        <h1 class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">Verificação de Certificado</h1>
+        <p class="mt-2 text-sm text-gray-500 leading-relaxed">
+            Esta página permite confirmar a autenticidade de um certificado de conclusão emitido pela plataforma.
+            Os dados abaixo são públicos; informações sensíveis não são expostas.
+        </p>
 
-        <dl class="mt-6 space-y-3 text-sm">
+        <dl class="mt-6 space-y-4 text-sm">
             <div>
-                <dt class="text-gray-500">Aluno</dt>
-                <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $certificate->metadata['student_name'] ?? $certificate->user->name }}</dd>
+                <dt class="text-gray-500 text-xs uppercase tracking-wide">Participante</dt>
+                <dd class="mt-0.5 font-medium text-gray-900 dark:text-gray-100">{{ $certificate->metadata['student_name'] ?? $certificate->user->name }}</dd>
             </div>
             <div>
-                <dt class="text-gray-500">Curso</dt>
-                <dd class="font-medium">{{ $certificate->course->title }}</dd>
+                <dt class="text-gray-500 text-xs uppercase tracking-wide">Microcurso concluído</dt>
+                <dd class="mt-0.5 font-medium text-gray-900 dark:text-gray-100">{{ $certificate->course->title }}</dd>
             </div>
             <div>
-                <dt class="text-gray-500">Emitido em</dt>
-                <dd>{{ $certificate->issued_at->format('d/m/Y H:i') }}</dd>
+                <dt class="text-gray-500 text-xs uppercase tracking-wide">Data de emissão</dt>
+                <dd class="mt-0.5">{{ $certificate->issued_at->format('d/m/Y \à\s H:i') }}</dd>
+            </div>
+            @if(isset($certificate->metadata['quiz_score']))
+            <div>
+                <dt class="text-gray-500 text-xs uppercase tracking-wide">Nota na avaliação final</dt>
+                <dd class="mt-0.5">{{ $certificate->metadata['quiz_score'] }}%</dd>
+            </div>
+            @endif
+            <div>
+                <dt class="text-gray-500 text-xs uppercase tracking-wide">Código de verificação</dt>
+                <dd class="mt-0.5 font-mono text-xs break-all text-gray-700 dark:text-gray-300">{{ $certificate->uuid }}</dd>
             </div>
             <div>
-                <dt class="text-gray-500">UUID</dt>
-                <dd class="font-mono text-xs break-all">{{ $certificate->uuid }}</dd>
-            </div>
-            <div>
-                <dt class="text-gray-500">Hash SHA-256</dt>
-                <dd class="font-mono text-xs break-all">{{ $certificate->content_hash }}</dd>
+                <dt class="text-gray-500 text-xs uppercase tracking-wide">Hash de integridade (SHA-256)</dt>
+                <dd class="mt-0.5 font-mono text-xs break-all text-gray-700 dark:text-gray-300">{{ $certificate->content_hash }}</dd>
             </div>
             @if ($certificate->blockchain_tx_hash)
             <div>
-                <dt class="text-gray-500">TX Blockchain</dt>
-                <dd class="font-mono text-xs break-all">{{ $certificate->blockchain_tx_hash }}</dd>
+                <dt class="text-gray-500 text-xs uppercase tracking-wide">Registro blockchain</dt>
+                <dd class="mt-0.5 font-mono text-xs break-all text-gray-700 dark:text-gray-300">{{ $certificate->blockchain_tx_hash }}</dd>
             </div>
             @endif
         </dl>
 
-        <div class="mt-6 p-4 rounded-lg {{ $verified ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200' : 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-200' }}">
+        <div class="mt-6 p-4 rounded-lg text-sm leading-relaxed {{ $verified ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800' : 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-200 border border-red-200 dark:border-red-800' }}">
             @if ($verified)
-                ✓ Certificado autêntico e verificado.
+                <strong>✓ Certificado autêntico.</strong> A integridade dos dados foi confirmada. Este participante concluiu o microcurso indicado acima.
             @else
-                ✗ Não foi possível verificar este certificado.
+                <strong>✗ Verificação falhou.</strong> Não foi possível confirmar a autenticidade deste certificado. Entre em contato com quem o emitiu.
             @endif
         </div>
     </div>

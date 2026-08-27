@@ -29,11 +29,15 @@ class CourseController extends Controller
             ? auth()->user()->enrollmentFor($course)
             : null;
 
+        $completedLessonIds = $enrollment
+            ? $enrollment->lessonProgress()->pluck('lesson_id')->all()
+            : [];
+
         $certificate = auth()->check()
             ? auth()->user()->certificates()->where('course_id', $course->id)->first()
             : null;
 
-        return view('courses.show', compact('course', 'enrollment', 'certificate'));
+        return view('courses.show', compact('course', 'enrollment', 'certificate', 'completedLessonIds'));
     }
 
     public function enroll(Request $request, Course $course): RedirectResponse
@@ -47,6 +51,6 @@ class CourseController extends Controller
 
         return redirect()
             ->route('courses.show', $course)
-            ->with('status', 'Matrícula confirmada! Comece pela primeira aula.');
+            ->with('status', 'Matrícula confirmada! Você já pode acessar a primeira aula e começar seus estudos.');
     }
 }
