@@ -23,9 +23,18 @@ return [
         'wallet_private_key' => env('BLOCKCHAIN_WALLET_PRIVATE_KEY'),
         'explorer_tx_url' => env('BLOCKCHAIN_EXPLORER_TX_URL', 'https://amoy.polygonscan.com/tx/%s'),
         'timeout' => (int) env('BLOCKCHAIN_TIMEOUT', 120),
+
+        // Evita que a página pública de verificação dispare um processo Node
+        // por acesso. Zero desativa o cache.
+        'verify_cache_ttl' => (int) env('BLOCKCHAIN_VERIFY_CACHE_TTL', 300),
+    ],
+
+    'quiz' => [
+        'max_attempts_per_hour' => (int) env('QUIZ_MAX_ATTEMPTS_PER_HOUR', 5),
     ],
 
     'certificate' => [
+        // Fallback de nota mínima quando o quiz não define a sua.
         'min_quiz_score' => (int) env('CERTIFICATE_MIN_SCORE', 70),
     ],
 ];

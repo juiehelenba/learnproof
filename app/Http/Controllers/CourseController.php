@@ -23,6 +23,8 @@ class CourseController extends Controller
 
     public function show(Course $course): View
     {
+        $this->authorize('view', $course);
+
         $course->load(['lessons', 'quiz.questions.options']);
 
         $enrollment = auth()->check()
@@ -42,6 +44,8 @@ class CourseController extends Controller
 
     public function enroll(Request $request, Course $course): RedirectResponse
     {
+        $this->authorize('enroll', $course);
+
         $user = $request->user();
 
         Enrollment::firstOrCreate(

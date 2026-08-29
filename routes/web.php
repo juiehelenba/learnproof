@@ -13,6 +13,7 @@ Route::get('/', function () {
 });
 
 Route::get('/certificados/{certificate:uuid}/verificar', [CertificateController::class, 'verify'])
+    ->middleware('throttle:30,1')
     ->name('certificates.verify');
 
 Route::get('/cursos', [CourseController::class, 'index'])
@@ -43,11 +44,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/cursos/{course:slug}/aulas/{lesson:slug}/concluir', [LessonController::class, 'complete'])->name('lessons.complete');
 
     Route::get('/cursos/{course:slug}/quiz', [QuizController::class, 'show'])->name('quizzes.show');
-    Route::post('/cursos/{course:slug}/quiz', [QuizController::class, 'submit'])->name('quizzes.submit');
+    Route::post('/cursos/{course:slug}/quiz', [QuizController::class, 'submit'])
+        ->middleware('throttle:10,1')
+        ->name('quizzes.submit');
 
     Route::get('/certificados/{certificate:uuid}', [CertificateController::class, 'show'])->name('certificates.show');
 
-    Route::post('/cursos/{course:slug}/ia/chat', [AiTutorController::class, 'chat'])->name('ai.chat');
+    // A UI usa esta rota, não a da API: sem throttle aqui o custo do provedor
+    // de IA fica ilimitado por usuário autenticado.
+    Route::post('/cursos/{course:slug}/ia/chat', [AiTutorController::class, 'chat'])
+        ->middleware('throttle:20,1')
+        ->name('ai.chat');
 });
 
 Route::middleware('auth')->group(function () {

@@ -97,7 +97,7 @@ PROMPT;
             'title' => $course->title,
             'slug' => $course->slug,
             'description' => $course->description,
-            'passing_score' => $course->passing_score,
+            'passing_score' => $course->passingScore(),
             'lessons' => $lessons,
         ];
 

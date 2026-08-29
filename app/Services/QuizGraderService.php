@@ -9,6 +9,32 @@ use Illuminate\Support\Facades\DB;
 
 class QuizGraderService
 {
+    /**
+     * Impede que o aluno descubra as respostas corretas por força bruta,
+     * já que as alternativas não mudam entre tentativas.
+     */
+    public function remainingAttempts(User $user, Quiz $quiz): int
+    {
+        $max = (int) config('learnproof.quiz.max_attempts_per_hour');
+
+        if ($max <= 0) {
+            return PHP_INT_MAX;
+        }
+
+        $used = QuizAttempt::query()
+            ->where('user_id', $user->id)
+            ->where('quiz_id', $quiz->id)
+            ->where('created_at', '>=', now()->subHour())
+            ->count();
+
+        return max(0, $max - $used);
+    }
+
+    public function canAttempt(User $user, Quiz $quiz): bool
+    {
+        return $this->remainingAttempts($user, $quiz) > 0;
+    }
+
     public function startAttempt(User $user, Quiz $quiz): QuizAttempt
     {
         return QuizAttempt::create([
@@ -45,7 +71,7 @@ class QuizGraderService
             }
 
             $score = $total > 0 ? (int) round(($correct / $total) * 100) : 0;
-            $passed = $score >= $quiz->passing_score;
+            $passed = $score >= $quiz->passingScore();
 
             $attempt->update([
                 'score' => $score,

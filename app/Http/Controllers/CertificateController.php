@@ -28,11 +28,13 @@ class CertificateController extends Controller
 
     public function verify(Certificate $certificate): View
     {
-        $certificate->load(['user', 'course']);
+        // Rota pública: carrega apenas as colunas que a página realmente exibe.
+        $certificate->load(['user:id,name', 'course:id,title']);
 
         return view('certificates.verify', [
             'certificate' => $certificate,
             'verified' => $this->blockchain->verifyOnChain($certificate),
+            'simulated' => $certificate->isSimulatedAnchor(),
             'explorerUrl' => $certificate->explorerTxUrl(),
             'blockchainPending' => $certificate->isBlockchainPending(),
         ]);

@@ -19,6 +19,15 @@ class Quiz extends Model
         return $this->belongsTo(Course::class);
     }
 
+    /**
+     * Nota mínima de aprovação. É o único valor considerado na correção,
+     * e portanto o único que deve ser exibido ao aluno.
+     */
+    public function passingScore(): int
+    {
+        return (int) ($this->passing_score ?: config('learnproof.certificate.min_quiz_score'));
+    }
+
     public function questions(): HasMany
     {
         return $this->hasMany(Question::class)->orderBy('sort_order');

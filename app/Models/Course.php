@@ -66,4 +66,14 @@ class Course extends Model
     {
         return (int) $this->lessons()->sum('duration_minutes');
     }
+
+    /**
+     * Delega ao quiz quando existe, para que a nota anunciada no curso nunca
+     * divirja da que é efetivamente aplicada na correção.
+     */
+    public function passingScore(): int
+    {
+        return $this->quiz?->passingScore()
+            ?? (int) ($this->passing_score ?: config('learnproof.certificate.min_quiz_score'));
+    }
 }

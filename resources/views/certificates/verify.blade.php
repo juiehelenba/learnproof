@@ -12,7 +12,8 @@
         <h1 class="mt-1 text-xl font-bold text-gray-900 dark:text-gray-100">Verificação de Certificado</h1>
         <p class="mt-2 text-sm text-gray-500 leading-relaxed">
             Esta página permite confirmar a autenticidade de um certificado de conclusão emitido pela plataforma.
-            Os dados abaixo são públicos; informações sensíveis não são expostas.
+            Expomos apenas o mínimo necessário para a verificação — a nota obtida na avaliação e os dados de contato
+            do participante ficam restritos ao próprio titular.
         </p>
 
         <dl class="mt-6 space-y-4 text-sm">
@@ -28,12 +29,6 @@
                 <dt class="text-gray-500 text-xs uppercase tracking-wide">Data de emissão</dt>
                 <dd class="mt-0.5">{{ $certificate->issued_at->format('d/m/Y \à\s H:i') }}</dd>
             </div>
-            @if(isset($certificate->metadata['quiz_score']))
-            <div>
-                <dt class="text-gray-500 text-xs uppercase tracking-wide">Nota na avaliação final</dt>
-                <dd class="mt-0.5">{{ $certificate->metadata['quiz_score'] }}%</dd>
-            </div>
-            @endif
             <div>
                 <dt class="text-gray-500 text-xs uppercase tracking-wide">Código de verificação</dt>
                 <dd class="mt-0.5 font-mono text-xs break-all text-gray-700 dark:text-gray-300">{{ $certificate->uuid }}</dd>
@@ -60,9 +55,22 @@
             @endif
         </dl>
 
-        <div class="mt-6 p-4 rounded-lg text-sm leading-relaxed {{ $verified ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200 border border-emerald-200 dark:border-emerald-800' : 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-200 border border-red-200 dark:border-red-800' }}">
-            @if ($verified)
-                <strong>✓ Certificado autêntico.</strong> A integridade dos dados foi confirmada. Este participante concluiu o microcurso indicado acima.
+        @php
+            $state = ! $verified ? 'failed' : (($simulated ?? false) ? 'simulated' : 'authentic');
+        @endphp
+
+        <div role="status" class="mt-6 p-4 rounded-lg text-sm leading-relaxed border {{ [
+            'authentic' => 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800',
+            'simulated' => 'bg-amber-50 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200 border-amber-200 dark:border-amber-800',
+            'failed' => 'bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-200 border-red-200 dark:border-red-800',
+        ][$state] }}">
+            @if ($state === 'authentic')
+                <strong>✓ Certificado autêntico.</strong> A integridade dos dados foi confirmada e o registro existe na rede
+                <strong>{{ $certificate->blockchain_network }}</strong>. Este participante concluiu o microcurso indicado acima.
+            @elseif ($state === 'simulated')
+                <strong>⚠ Integridade confirmada, registro simulado.</strong> Os dados deste certificado não foram alterados,
+                mas a ancoragem foi gerada em <strong>ambiente de demonstração</strong> — não existe transação real em blockchain
+                pública. Não use esta página como comprovação externa.
             @else
                 <strong>✗ Verificação falhou.</strong> Não foi possível confirmar a autenticidade deste certificado. Entre em contato com quem o emitiu.
             @endif

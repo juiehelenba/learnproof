@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Jobs\AnchorCertificateJob;
 use App\Models\Certificate;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Str;
@@ -36,9 +37,10 @@ class BlockchainAnchorService
                 'blockchain_network' => config('learnproof.blockchain.network'),
             ]);
 
-            Log::info('Certificado ancorado na blockchain', [
+            Log::info('learnproof.blockchain.anchored', [
                 'uuid' => $certificate->uuid,
                 'tx_hash' => $txHash,
+                'network' => $certificate->blockchain_network,
             ]);
         }
 
@@ -70,6 +72,21 @@ class BlockchainAnchorService
             return false;
         }
 
+        $ttl = (int) config('learnproof.blockchain.verify_cache_ttl', 300);
+
+        if ($ttl <= 0) {
+            return $this->readAnchorFromChain($contentHash);
+        }
+
+        return Cache::remember(
+            "learnproof:anchor-verified:{$contentHash}",
+            $ttl,
+            fn (): bool => $this->readAnchorFromChain($contentHash),
+        );
+    }
+
+    private function readAnchorFromChain(string $contentHash): bool
+    {
         $result = $this->runCli('verify', $contentHash);
 
         return ($result['anchored'] ?? false) === true;
@@ -77,7 +94,7 @@ class BlockchainAnchorService
 
     public function verifyOnChain(Certificate $certificate): bool
     {
-        if (! hash_equals($certificate->content_hash, $this->expectedHash($certificate))) {
+        if (! $certificate->hasIntactContentHash()) {
             return false;
         }
 
@@ -85,36 +102,20 @@ class BlockchainAnchorService
             return false;
         }
 
-        if ($this->isMockNetwork($certificate->blockchain_network)) {
-            return true;
-        }
-
-        if (! $this->isRealMode()) {
+        if ($certificate->isSimulatedAnchor() || ! $this->isRealMode()) {
             return true;
         }
 
         try {
             return $this->verifyHashOnChain($certificate->content_hash);
         } catch (\Throwable $e) {
-            Log::warning('Falha na verificação on-chain; usando fallback local', [
+            Log::warning('learnproof.blockchain.verify_failed', [
                 'uuid' => $certificate->uuid,
                 'error' => $e->getMessage(),
             ]);
 
             return true;
         }
-    }
-
-    public function expectedHash(Certificate $certificate): string
-    {
-        $payload = implode('|', [
-            $certificate->uuid,
-            $certificate->user_id,
-            $certificate->course_id,
-            $certificate->issued_at->toIso8601String(),
-        ]);
-
-        return hash('sha256', $payload);
     }
 
     public function isRealMode(): bool
@@ -197,10 +198,5 @@ class BlockchainAnchorService
         }
 
         return $decoded;
-    }
-
-    private function isMockNetwork(?string $network): bool
-    {
-        return str_starts_with($network ?? '', 'mock');
     }
 }

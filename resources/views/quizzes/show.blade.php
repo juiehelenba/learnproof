@@ -21,9 +21,9 @@
                 <h3 class="font-semibold text-gray-900 dark:text-gray-100">Instruções da avaliação</h3>
                 <ul class="mt-3 space-y-2 text-sm text-gray-600 dark:text-gray-400">
                     <li class="flex gap-2"><span class="text-indigo-500">•</span> Esta avaliação contém <strong>{{ $quiz->questions->count() }} questões</strong> de múltipla escolha sobre todo o conteúdo do curso.</li>
-                    <li class="flex gap-2"><span class="text-indigo-500">•</span> Você precisa atingir nota mínima de <strong>{{ $quiz->passing_score }}%</strong> para ser aprovado.</li>
-                    <li class="flex gap-2"><span class="text-indigo-500">•</span> Leia cada questão com calma antes de marcar sua resposta — só é possível enviar uma vez por tentativa.</li>
-                    <li class="flex gap-2"><span class="text-indigo-500">•</span> Se não atingir a nota mínima, revise as aulas e tente novamente.</li>
+                    <li class="flex gap-2"><span class="text-indigo-500">•</span> Você precisa atingir nota mínima de <strong>{{ $quiz->passingScore() }}%</strong> para ser aprovado.</li>
+                    <li class="flex gap-2"><span class="text-indigo-500">•</span> Leia cada questão com calma antes de marcar sua resposta — o envio é definitivo e conta como uma tentativa.</li>
+                    <li class="flex gap-2"><span class="text-amber-500">•</span> Você tem <strong>{{ $remaining }} tentativa(s) restante(s)</strong> nesta hora. Se não atingir a nota mínima, revise as aulas antes de tentar de novo.</li>
                     <li class="flex gap-2"><span class="text-emerald-500">•</span> Ao ser aprovado, seu <strong>certificado verificável</strong> será emitido automaticamente.</li>
                 </ul>
             </div>

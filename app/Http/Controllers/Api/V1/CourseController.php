@@ -14,6 +14,7 @@ class CourseController extends Controller
         $this->authorize('viewAny', Course::class);
 
         $courses = Course::query()
+            ->with('quiz:id,course_id,passing_score')
             ->withCount('lessons')
             ->when(
                 ! $request->user()?->role?->isStaff(),
@@ -26,7 +27,7 @@ class CourseController extends Controller
                 'title' => $course->title,
                 'slug' => $course->slug,
                 'description' => $course->description,
-                'passing_score' => $course->passing_score,
+                'passing_score' => $course->passingScore(),
                 'is_published' => $course->is_published,
                 'lessons_count' => $course->lessons_count,
             ]);
@@ -38,7 +39,10 @@ class CourseController extends Controller
     {
         $this->authorize('view', $course);
 
-        $course->load(['lessons:id,course_id,title,slug,duration_minutes,sort_order']);
+        $course->load([
+            'lessons:id,course_id,title,slug,duration_minutes,sort_order',
+            'quiz:id,course_id,passing_score',
+        ]);
 
         return response()->json([
             'data' => [
@@ -46,7 +50,7 @@ class CourseController extends Controller
                 'title' => $course->title,
                 'slug' => $course->slug,
                 'description' => $course->description,
-                'passing_score' => $course->passing_score,
+                'passing_score' => $course->passingScore(),
                 'is_published' => $course->is_published,
                 'lessons' => $course->lessons,
                 'enrolled' => $request->user()

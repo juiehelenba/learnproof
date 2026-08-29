@@ -33,7 +33,7 @@
                     </div>
                     <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
                         <dt class="text-gray-500 dark:text-gray-400">Nota mínima</dt>
-                        <dd class="mt-1 font-semibold text-gray-900 dark:text-gray-100">{{ $course->passing_score }}%</dd>
+                        <dd class="mt-1 font-semibold text-gray-900 dark:text-gray-100">{{ $course->passingScore() }}%</dd>
                     </div>
                     <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
                         <dt class="text-gray-500 dark:text-gray-400">Certificado</dt>
@@ -60,7 +60,7 @@
                     <li>Matricule-se gratuitamente no curso</li>
                     <li>Assista ou leia todas as aulas na ordem sugerida</li>
                     <li>Marque cada aula como concluída ao terminar</li>
-                    <li>Faça o quiz final e obtenha nota mínima de {{ $course->passing_score }}%</li>
+                    <li>Faça o quiz final e obtenha nota mínima de {{ $course->passingScore() }}%</li>
                     <li>Receba seu certificado com link público de verificação</li>
                 </ol>
 
