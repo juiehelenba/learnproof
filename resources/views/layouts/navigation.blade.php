@@ -18,6 +18,13 @@
                     <x-nav-link :href="route('courses.index')" :active="request()->routeIs('courses.*')">
                         Cursos
                     </x-nav-link>
+                    @auth
+                        @if (Auth::user()->isStaff())
+                            <x-nav-link :href="route('instructor.courses.index')" :active="request()->routeIs('instructor.*')">
+                                Painel
+                            </x-nav-link>
+                        @endif
+                    @endauth
                 </div>
             </div>
 
@@ -38,6 +45,12 @@
                         </x-slot>
 
                         <x-slot name="content">
+                            @if (Auth::user()->isStaff())
+                                <x-dropdown-link :href="route('instructor.courses.index')">
+                                    Painel do instrutor
+                                </x-dropdown-link>
+                            @endif
+
                             <x-dropdown-link :href="route('profile.edit')">
                                 {{ __('Profile') }}
                             </x-dropdown-link>
@@ -82,6 +95,13 @@
             <x-responsive-nav-link :href="route('courses.index')" :active="request()->routeIs('courses.*')">
                 Cursos
             </x-responsive-nav-link>
+            @auth
+                @if (Auth::user()->isStaff())
+                    <x-responsive-nav-link :href="route('instructor.courses.index')" :active="request()->routeIs('instructor.*')">
+                        Painel
+                    </x-responsive-nav-link>
+                @endif
+            @endauth
         </div>
 
         @auth
@@ -93,6 +113,12 @@
                 </div>
 
                 <div class="mt-3 space-y-1">
+                    @if (Auth::user()->isStaff())
+                        <x-responsive-nav-link :href="route('instructor.courses.index')">
+                            Painel do instrutor
+                        </x-responsive-nav-link>
+                    @endif
+
                     <x-responsive-nav-link :href="route('profile.edit')">
                         {{ __('Profile') }}
                     </x-responsive-nav-link>

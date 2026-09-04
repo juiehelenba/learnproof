@@ -3,6 +3,9 @@
 use App\Http\Controllers\AiTutorController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\Instructor\CourseController as InstructorCourseController;
+use App\Http\Controllers\Instructor\LessonController as InstructorLessonController;
+use App\Http\Controllers\Instructor\QuizController as InstructorQuizController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
@@ -56,6 +59,29 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:20,1')
         ->name('ai.chat');
 });
+
+Route::middleware(['auth', 'verified', 'role:admin,instructor'])
+    ->prefix('instrutor')
+    ->name('instructor.')
+    ->group(function () {
+        Route::get('/cursos', [InstructorCourseController::class, 'index'])->name('courses.index');
+        Route::get('/cursos/criar', [InstructorCourseController::class, 'create'])->name('courses.create');
+        Route::post('/cursos', [InstructorCourseController::class, 'store'])->name('courses.store');
+        Route::get('/cursos/{course:slug}/editar', [InstructorCourseController::class, 'edit'])->name('courses.edit');
+        Route::put('/cursos/{course:slug}', [InstructorCourseController::class, 'update'])->name('courses.update');
+        Route::delete('/cursos/{course:slug}', [InstructorCourseController::class, 'destroy'])->name('courses.destroy');
+        Route::patch('/cursos/{course:slug}/publicar', [InstructorCourseController::class, 'togglePublish'])->name('courses.publish');
+
+        Route::get('/cursos/{course:slug}/aulas/criar', [InstructorLessonController::class, 'create'])->name('lessons.create');
+        Route::post('/cursos/{course:slug}/aulas', [InstructorLessonController::class, 'store'])->name('lessons.store');
+        Route::get('/cursos/{course:slug}/aulas/{lesson:slug}/editar', [InstructorLessonController::class, 'edit'])->name('lessons.edit');
+        Route::put('/cursos/{course:slug}/aulas/{lesson:slug}', [InstructorLessonController::class, 'update'])->name('lessons.update');
+        Route::delete('/cursos/{course:slug}/aulas/{lesson:slug}', [InstructorLessonController::class, 'destroy'])->name('lessons.destroy');
+
+        Route::put('/cursos/{course:slug}/quiz', [InstructorQuizController::class, 'update'])->name('quiz.update');
+        Route::post('/cursos/{course:slug}/questoes', [InstructorQuizController::class, 'storeQuestion'])->name('questions.store');
+        Route::delete('/cursos/{course:slug}/questoes/{question}', [InstructorQuizController::class, 'destroyQuestion'])->name('questions.destroy');
+    });
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
