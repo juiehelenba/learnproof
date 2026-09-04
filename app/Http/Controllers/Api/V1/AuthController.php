@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\LoginRequest;
+use App\Http\Resources\Api\V1\AuthTokenResource;
+use App\Http\Resources\Api\V1\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function login(LoginRequest $request): JsonResponse
+    public function login(LoginRequest $request): AuthTokenResource
     {
         $user = User::query()->where('email', $request->string('email'))->first();
 
@@ -25,28 +27,19 @@ class AuthController extends Controller
         $device = $request->string('device_name')->toString() ?: 'api-token';
         $token = $user->createToken($device)->plainTextToken;
 
-        return response()->json([
+        return (new AuthTokenResource([
             'token' => $token,
             'token_type' => 'Bearer',
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role?->value,
-            ],
+            'user' => $user,
+        ]))->additional([
+            'meta' => ['api_version' => 'v1'],
         ]);
     }
 
-    public function me(Request $request): JsonResponse
+    public function me(Request $request): UserResource
     {
-        $user = $request->user();
-
-        return response()->json([
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role?->value,
-            'email_verified_at' => $user->email_verified_at,
+        return (new UserResource($request->user()))->additional([
+            'meta' => ['api_version' => 'v1'],
         ]);
     }
 
@@ -54,6 +47,10 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()?->delete();
 
-        return response()->json(['message' => 'Logout realizado.']);
+        return response()->json([
+            'data' => null,
+            'message' => 'Logout realizado.',
+            'meta' => ['api_version' => 'v1'],
+        ]);
     }
 }

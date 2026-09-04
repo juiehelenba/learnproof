@@ -62,12 +62,19 @@ Curso demo: `/cursos/fundamentos-ia-generativa`
 
 ## API v1
 
+Documentação interativa: [`/api/v1/docs`](http://localhost:8000/api/v1/docs) · Spec: [`/api/v1/openapi.yaml`](http://localhost:8000/api/v1/openapi.yaml)
+
+Envelope padrão: `{ "data": ..., "meta": { "api_version": "v1" } }`. Listagens usam paginação Laravel (`data` + `links` + `meta`).
+
 ```bash
 # Login
 curl -X POST http://localhost:8000/api/v1/login \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '{"email":"aluno@learnproof.test","password":"password","device_name":"cli"}'
+
+# Cursos (paginado)
+curl "http://localhost:8000/api/v1/courses?per_page=15" -H "Accept: application/json"
 
 # Tutor (Bearer token)
 curl -X POST http://localhost:8000/api/v1/courses/fundamentos-ia-generativa/ai/chat \
@@ -81,12 +88,16 @@ Principais rotas:
 
 | Método | Rota | Auth |
 |--------|------|------|
+| GET | `/api/v1` | — |
+| GET | `/api/v1/docs` | — |
 | POST | `/api/v1/login` | — |
 | GET | `/api/v1/me` | Sanctum |
-| GET | `/api/v1/courses` | — |
+| POST | `/api/v1/logout` | Sanctum |
+| GET | `/api/v1/courses` | — (staff vê rascunhos) |
 | GET | `/api/v1/courses/{slug}` | — |
 | GET | `/api/v1/courses/{slug}/ai/history` | Sanctum + matrícula |
 | POST | `/api/v1/courses/{slug}/ai/chat` | Sanctum + matrícula |
+| GET | `/api/v1/staff/ping` | Sanctum + staff |
 
 ## IA (opcional)
 

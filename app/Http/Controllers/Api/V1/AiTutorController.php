@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\AiTutorChatRequest;
+use App\Http\Resources\Api\V1\AiChatMessageResource;
+use App\Http\Resources\Api\V1\AiTutorChatResource;
 use App\Models\Course;
 use App\Services\Ai\AiTutorService;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class AiTutorController extends Controller
 {
@@ -15,22 +17,18 @@ class AiTutorController extends Controller
         private AiTutorService $tutor,
     ) {}
 
-    public function history(Request $request, Course $course): JsonResponse
+    public function history(Request $request, Course $course): AnonymousResourceCollection
     {
         $this->authorize('useAiTutor', $course);
 
-        return response()->json([
-            'data' => $this->tutor->history($request->user(), $course)->map(fn ($m) => [
-                'id' => $m->id,
-                'role' => $m->role,
-                'content' => $m->content,
-                'used_fallback' => $m->used_fallback,
-                'created_at' => $m->created_at,
-            ]),
+        return AiChatMessageResource::collection(
+            $this->tutor->history($request->user(), $course)
+        )->additional([
+            'meta' => ['api_version' => 'v1'],
         ]);
     }
 
-    public function chat(AiTutorChatRequest $request, Course $course): JsonResponse
+    public function chat(AiTutorChatRequest $request, Course $course): AiTutorChatResource
     {
         $this->authorize('useAiTutor', $course);
 
@@ -40,20 +38,8 @@ class AiTutorController extends Controller
             $request->validated('message')
         );
 
-        return response()->json([
-            'data' => [
-                'reply' => $result['reply'],
-                'interaction_id' => $result['interaction_id'],
-                'used_fallback' => $result['used_fallback'],
-                'latency_ms' => $result['latency_ms'],
-                'context' => $result['context'],
-                'history' => $result['history']->map(fn ($m) => [
-                    'id' => $m->id,
-                    'role' => $m->role,
-                    'content' => $m->content,
-                    'created_at' => $m->created_at,
-                ]),
-            ],
+        return (new AiTutorChatResource($result))->additional([
+            'meta' => ['api_version' => 'v1'],
         ]);
     }
 }

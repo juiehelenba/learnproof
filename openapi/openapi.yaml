@@ -1,0 +1,369 @@
+openapi: 3.0.3
+info:
+  title: LearnProof API
+  description: |
+    API pública e autenticada (Sanctum) do LearnProof.
+    Envelope padrão: `{ "data": ..., "meta": { "api_version": "v1" } }`.
+    Listagens paginadas também incluem `links` e `meta` do Laravel (`current_page`, `total`, etc.).
+  version: 1.0.0
+  contact:
+    name: LearnProof
+
+servers:
+  - url: /api/v1
+    description: API v1
+
+tags:
+  - name: Auth
+  - name: Courses
+  - name: AI Tutor
+  - name: Staff
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+
+  schemas:
+    Meta:
+      type: object
+      properties:
+        api_version:
+          type: string
+          example: v1
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, instructor, student]
+        email_verified_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    Lesson:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        duration_minutes:
+          type: integer
+        sort_order:
+          type: integer
+
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        passing_score:
+          type: integer
+        is_published:
+          type: boolean
+        lessons_count:
+          type: integer
+        lessons:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lesson'
+        enrolled:
+          type: boolean
+
+    AiChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+        used_fallback:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        error:
+          type: string
+          nullable: true
+
+paths:
+  /:
+    get:
+      summary: Descoberta da API
+      tags: [Courses]
+      responses:
+        '200':
+          description: Índice com links de documentação
+
+  /login:
+    post:
+      summary: Login (token Sanctum)
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                device_name:
+                  type: string
+                  maxLength: 120
+      responses:
+        '200':
+          description: Token emitido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      token_type:
+                        type: string
+                        example: Bearer
+                      user:
+                        $ref: '#/components/schemas/User'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '422':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /me:
+    get:
+      summary: Usuário autenticado
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/User'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '401':
+          description: Não autenticado
+
+  /logout:
+    post:
+      summary: Revoga o token atual
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    nullable: true
+                  message:
+                    type: string
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+
+  /courses:
+    get:
+      summary: Lista cursos (paginado)
+      description: |
+        Público. Sem token, só cursos publicados.
+        Com Bearer de staff, inclui rascunhos.
+      tags: [Courses]
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 15
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Course'
+                  links:
+                    type: object
+                  meta:
+                    type: object
+
+  /courses/{slug}:
+    get:
+      summary: Detalhe do curso
+      tags: [Courses]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Curso com aulas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Course'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '403':
+          description: Curso em rascunho sem permissão
+        '404':
+          description: Não encontrado
+
+  /courses/{slug}/ai/history:
+    get:
+      summary: Histórico do tutor de IA
+      tags: [AI Tutor]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Mensagens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AiChatMessage'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '403':
+          description: Sem matrícula (exceto admin)
+
+  /courses/{slug}/ai/chat:
+    post:
+      summary: Envia mensagem ao tutor
+      tags: [AI Tutor]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                  minLength: 2
+                  maxLength: 2000
+      responses:
+        '200':
+          description: Resposta do tutor
+        '403':
+          description: Sem permissão
+        '422':
+          description: Validação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '429':
+          description: Rate limit
+
+  /staff/ping:
+    get:
+      summary: Smoke test de autorização staff
+      tags: [Staff]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Acesso OK
+        '403':
+          description: Sem role admin/instructor
