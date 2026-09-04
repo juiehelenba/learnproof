@@ -1,5 +1,8 @@
 <?php
 
+use App\Console\Commands\BlockchainSetupCommand;
+use App\Console\Commands\BlockchainTestAnchorCommand;
+use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,12 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
     )
     ->withCommands([
-        \App\Console\Commands\BlockchainSetupCommand::class,
-        \App\Console\Commands\BlockchainTestAnchorCommand::class,
+        BlockchainSetupCommand::class,
+        BlockchainTestAnchorCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'role' => \App\Http\Middleware\EnsureUserHasRole::class,
+            'role' => EnsureUserHasRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -30,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
 
-        $exceptions->report(function (\Throwable $e) {
+        $exceptions->report(function (Throwable $e) {
             if ($e instanceof ValidationException || $e instanceof HttpExceptionInterface) {
                 return false;
             }
@@ -45,7 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
             ]);
         });
 
-        $exceptions->render(function (\Throwable $e, Request $request) {
+        $exceptions->render(function (Throwable $e, Request $request) {
             if (! $request->is('api/*') && ! $request->expectsJson()) {
                 return null;
             }

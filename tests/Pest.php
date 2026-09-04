@@ -1,5 +1,10 @@
 <?php
 
+use App\Models\Course;
+use App\Models\Enrollment;
+use App\Models\LessonProgress;
+use App\Models\Quiz;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -7,44 +12,78 @@ use Tests\TestCase;
 |--------------------------------------------------------------------------
 | Test Case
 |--------------------------------------------------------------------------
-|
-| The closure you provide to your test functions is always bound to a specific PHPUnit test
-| case class. By default, that class is "PHPUnit\Framework\TestCase". Of course, you may
-| need to change it using the "pest()" function to bind a different classes or traits.
-|
 */
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
 
-/*
-|--------------------------------------------------------------------------
-| Expectations
-|--------------------------------------------------------------------------
-|
-| When you're writing tests, you often need to check that values meet certain conditions. The
-| "expect()" function gives you access to a set of "expectations" methods that you can use
-| to assert different things. Of course, you may extend the Expectation API at any time.
-|
-*/
-
-expect()->extend('toBeOne', function () {
-    return $this->toBe(1);
-});
+pest()->extend(TestCase::class)
+    ->use(RefreshDatabase::class)
+    ->in('Unit/LearnProof');
 
 /*
 |--------------------------------------------------------------------------
-| Functions
+| Helpers LearnProof
 |--------------------------------------------------------------------------
-|
-| While Pest is very powerful out-of-the-box, you may have some testing code specific to your
-| project that you don't want to repeat in every file. Here you can also expose helpers as
-| global functions to help you to reduce the number of lines of code in your test files.
-|
 */
 
-function something()
+/**
+ * Matricula o aluno e marca todas as aulas do curso como concluídas.
+ */
+function enrollAndCompleteLessons(User $user, Course $course): Enrollment
 {
-    // ..
+    $course->loadMissing('lessons');
+
+    $enrollment = Enrollment::factory()->create([
+        'user_id' => $user->id,
+        'course_id' => $course->id,
+        'enrolled_at' => now(),
+    ]);
+
+    foreach ($course->lessons as $lesson) {
+        LessonProgress::query()->create([
+            'enrollment_id' => $enrollment->id,
+            'lesson_id' => $lesson->id,
+            'completed_at' => now(),
+        ]);
+    }
+
+    $enrollment->update(['completed_at' => now()]);
+
+    return $enrollment->fresh();
+}
+
+/**
+ * @return array<int, int> question_id => option_id correta
+ */
+function correctAnswersFor(Quiz $quiz): array
+{
+    $quiz->loadMissing('questions.options');
+
+    $answers = [];
+
+    foreach ($quiz->questions as $question) {
+        $correct = $question->options->firstWhere('is_correct', true);
+        $answers[$question->id] = $correct->id;
+    }
+
+    return $answers;
+}
+
+/**
+ * @return array<int, int> question_id => option_id incorreta
+ */
+function incorrectAnswersFor(Quiz $quiz): array
+{
+    $quiz->loadMissing('questions.options');
+
+    $answers = [];
+
+    foreach ($quiz->questions as $question) {
+        $wrong = $question->options->firstWhere('is_correct', false);
+        $answers[$question->id] = $wrong->id;
+    }
+
+    return $answers;
 }

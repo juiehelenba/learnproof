@@ -32,5 +32,10 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="BLOCKCHAIN_ENABLED" value="true"/>
+        <env name="BLOCKCHAIN_MODE" value="mock"/>
+        <env name="BLOCKCHAIN_NETWORK" value="polygon-amoy"/>
+        <env name="QUIZ_MAX_ATTEMPTS_PER_HOUR" value="5"/>
+        <env name="AI_ENABLED" value="false"/>
     </php>
 </phpunit>

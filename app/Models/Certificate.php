@@ -3,12 +3,17 @@
 namespace App\Models;
 
 use App\Services\BlockchainAnchorService;
+use Database\Factories\CertificateFactory;
 use DateTimeInterface;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Certificate extends Model
 {
+    /** @use HasFactory<CertificateFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'course_id',
