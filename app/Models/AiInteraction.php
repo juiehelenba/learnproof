@@ -2,11 +2,16 @@
 
 namespace App\Models;
 
+use Database\Factories\AiInteractionFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AiInteraction extends Model
 {
+    /** @use HasFactory<AiInteractionFactory> */
+    use HasFactory;
+
     protected $fillable = [
         'user_id',
         'course_id',

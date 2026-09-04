@@ -49,6 +49,9 @@
                                 <x-dropdown-link :href="route('instructor.courses.index')">
                                     Painel do instrutor
                                 </x-dropdown-link>
+                                <x-dropdown-link :href="route('instructor.metrics')">
+                                    Métricas
+                                </x-dropdown-link>
                             @endif
 
                             <x-dropdown-link :href="route('profile.edit')">

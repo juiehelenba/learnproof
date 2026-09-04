@@ -1,15 +1,18 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <p class="text-xs text-indigo-600 dark:text-indigo-400 uppercase tracking-wide font-medium">Painel do instrutor</p>
                 <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                     Gestão de cursos
                 </h2>
             </div>
-            <a href="{{ route('instructor.courses.create') }}">
-                <x-primary-button type="button">Novo curso</x-primary-button>
-            </a>
+            <div class="flex flex-wrap items-center gap-3">
+                <x-instructor-subnav active="courses" />
+                <a href="{{ route('instructor.courses.create') }}">
+                    <x-primary-button type="button">Novo curso</x-primary-button>
+                </a>
+            </div>
         </div>
     </x-slot>
 

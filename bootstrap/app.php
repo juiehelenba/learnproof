@@ -2,6 +2,7 @@
 
 use App\Console\Commands\BlockchainSetupCommand;
 use App\Console\Commands\BlockchainTestAnchorCommand;
+use App\Console\Commands\LearnProofMetricsCommand;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands([
         BlockchainSetupCommand::class,
         BlockchainTestAnchorCommand::class,
+        LearnProofMetricsCommand::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([

@@ -74,10 +74,12 @@ class AiTutorService
                 'latency_ms' => $latencyMs,
                 'context_chars' => $contextMeta['context_chars'] ?? null,
                 'context_snapshot' => $contextMeta,
-                'meta' => [
+                'meta' => array_merge($generation['meta'] ?? [], [
                     'request_id' => (string) Str::uuid(),
                     'history_count' => $generation['history_count'],
-                ],
+                    'prompt_tokens' => $generation['prompt_tokens'],
+                    'completion_tokens' => $generation['completion_tokens'],
+                ]),
             ]);
 
             Log::info('learnproof.ai.tutor.completed', [

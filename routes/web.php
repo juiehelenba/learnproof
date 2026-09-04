@@ -3,8 +3,10 @@
 use App\Http\Controllers\AiTutorController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\Instructor\CourseController as InstructorCourseController;
 use App\Http\Controllers\Instructor\LessonController as InstructorLessonController;
+use App\Http\Controllers\Instructor\MetricsController as InstructorMetricsController;
 use App\Http\Controllers\Instructor\QuizController as InstructorQuizController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ProfileController;
@@ -14,6 +16,10 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/health', HealthController::class)
+    ->middleware('throttle:60,1')
+    ->name('health');
 
 Route::get('/certificados/{certificate:uuid}/verificar', [CertificateController::class, 'verify'])
     ->middleware('throttle:30,1')
@@ -64,6 +70,8 @@ Route::middleware(['auth', 'verified', 'role:admin,instructor'])
     ->prefix('instrutor')
     ->name('instructor.')
     ->group(function () {
+        Route::get('/metricas', InstructorMetricsController::class)->name('metrics');
+
         Route::get('/cursos', [InstructorCourseController::class, 'index'])->name('courses.index');
         Route::get('/cursos/criar', [InstructorCourseController::class, 'create'])->name('courses.create');
         Route::post('/cursos', [InstructorCourseController::class, 'store'])->name('courses.store');

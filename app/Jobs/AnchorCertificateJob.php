@@ -31,7 +31,7 @@ class AnchorCertificateJob implements ShouldQueue
 
     public function failed(\Throwable $exception): void
     {
-        Log::error('Falha ao ancorar certificado na blockchain', [
+        Log::error('learnproof.blockchain.anchor_failed', [
             'certificate_uuid' => $this->certificate->uuid,
             'error' => $exception->getMessage(),
         ]);

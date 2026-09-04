@@ -12,6 +12,9 @@ return [
         'timeout' => (int) env('AI_TIMEOUT', 30),
         'context_cache_ttl' => (int) env('AI_CONTEXT_CACHE_TTL', 600),
         'lesson_excerpt_chars' => (int) env('AI_LESSON_EXCERPT_CHARS', 1200),
+        // Estimativa de custo USD por 1M tokens (gpt-4o-mini aproximado).
+        'price_prompt_per_1m' => (float) env('AI_PRICE_PROMPT_PER_1M', 0.15),
+        'price_completion_per_1m' => (float) env('AI_PRICE_COMPLETION_PER_1M', 0.60),
     ],
 
     'blockchain' => [
