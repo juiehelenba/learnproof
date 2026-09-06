@@ -28,7 +28,13 @@
                 </ul>
             </div>
 
-            <form method="POST" action="{{ route('quizzes.submit', $course) }}" class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6 space-y-8">
+            <form
+                method="POST"
+                action="{{ route('quizzes.submit', $course) }}"
+                class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6 space-y-8"
+                x-data="{ submitting: false }"
+                @submit="if (submitting) { $event.preventDefault(); return; } submitting = true"
+            >
                 @csrf
 
                 @foreach ($quiz->questions as $question)
@@ -50,7 +56,10 @@
 
                 <div class="pt-2 flex items-center justify-between">
                     <a href="{{ route('courses.show', $course) }}" class="text-sm text-gray-500 hover:underline">← Revisar aulas</a>
-                    <x-primary-button>Enviar avaliação</x-primary-button>
+                    <x-primary-button x-bind:disabled="submitting" x-bind:aria-busy="submitting.toString()">
+                        <span x-show="!submitting">Enviar avaliação</span>
+                        <span x-show="submitting" x-cloak>Enviando...</span>
+                    </x-primary-button>
                 </div>
             </form>
         </div>

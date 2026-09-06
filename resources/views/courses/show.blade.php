@@ -150,7 +150,14 @@
                             e pode explicar conceitos, dar exemplos ou ajudar a revisar antes do quiz.
                             <span class="block mt-1 text-xs text-gray-400">Sempre valide informações críticas; o tutor pode cometer erros.</span>
                         </p>
-                        <div class="mt-4 space-y-2 max-h-52 overflow-y-auto text-sm border border-gray-100 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-900/30" id="chat-history">
+                        <div
+                            class="mt-4 space-y-2 max-h-52 overflow-y-auto text-sm border border-gray-100 dark:border-gray-700 rounded-lg p-3 bg-gray-50 dark:bg-gray-900/30"
+                            id="chat-history"
+                            role="log"
+                            aria-live="polite"
+                            aria-relevant="additions"
+                            aria-label="Histórico do tutor de IA"
+                        >
                             <template x-if="messages.length === 0">
                                 <p class="text-gray-400 text-center py-4">Nenhuma mensagem ainda. Faça sua primeira pergunta!</p>
                             </template>
@@ -161,8 +168,17 @@
                             </template>
                         </div>
                         <form @submit.prevent="send" class="mt-4 flex gap-2">
-                            <input x-model="input" type="text" class="flex-1 rounded-md border-gray-300 dark:bg-gray-900 dark:border-gray-600 shadow-sm" placeholder="Ex.: O que é alucinação em IA? Como escrever um bom prompt?" required>
-                            <x-primary-button type="submit" x-bind:disabled="loading">
+                            <label for="ai-tutor-input" class="sr-only">Mensagem para o tutor de IA</label>
+                            <input
+                                id="ai-tutor-input"
+                                x-model="input"
+                                type="text"
+                                class="flex-1 rounded-md border-gray-300 dark:bg-gray-900 dark:border-gray-600 shadow-sm"
+                                placeholder="Ex.: O que é alucinação em IA? Como escrever um bom prompt?"
+                                required
+                                autocomplete="off"
+                            >
+                            <x-primary-button type="submit" x-bind:disabled="loading" x-bind:aria-busy="loading.toString()">
                                 <span x-show="!loading">Enviar</span>
                                 <span x-show="loading">Aguarde...</span>
                             </x-primary-button>

@@ -36,6 +36,7 @@
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Cursos em andamento</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 mb-4">Retome de onde parou ou conclua o quiz para receber seu certificado.</p>
                 @forelse ($enrollments as $enrollment)
+                    @php($progress = $enrollment->progressPercent())
                     <div class="mb-4 bg-white dark:bg-gray-800 p-5 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
                         <div class="flex flex-wrap justify-between items-start gap-4">
                             <div class="flex-1 min-w-[200px]">
@@ -43,13 +44,13 @@
                                 <p class="text-sm text-gray-500 mt-1">
                                     Matriculado em {{ $enrollment->enrolled_at->format('d/m/Y') }}
                                 </p>
-                                <div class="mt-3 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden max-w-xs">
-                                    <div class="h-full bg-indigo-600 rounded-full" style="width: {{ $enrollment->progressPercent() }}%"></div>
+                                <div class="mt-3 h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden max-w-xs" role="progressbar" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso do curso">
+                                    <div class="h-full bg-indigo-600 rounded-full" style="width: {{ $progress }}%"></div>
                                 </div>
-                                <p class="mt-1 text-xs text-gray-500">{{ $enrollment->progressPercent() }}% concluído</p>
+                                <p class="mt-1 text-xs text-gray-500">{{ $progress }}% concluído</p>
                             </div>
                             <a href="{{ route('courses.show', $enrollment->course) }}" class="shrink-0 inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition">
-                                {{ $enrollment->progressPercent() >= 100 ? 'Fazer quiz' : 'Continuar curso' }}
+                                {{ $progress >= 100 ? 'Fazer quiz' : 'Continuar curso' }}
                             </a>
                         </div>
                     </div>

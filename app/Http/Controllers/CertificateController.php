@@ -14,7 +14,7 @@ class CertificateController extends Controller
 
     public function show(Certificate $certificate): View
     {
-        $this->authorizeOwner($certificate);
+        $this->authorize('view', $certificate);
 
         $certificate->load(['user', 'course']);
 
@@ -38,12 +38,5 @@ class CertificateController extends Controller
             'explorerUrl' => $certificate->explorerTxUrl(),
             'blockchainPending' => $certificate->isBlockchainPending(),
         ]);
-    }
-
-    private function authorizeOwner(Certificate $certificate): void
-    {
-        if (auth()->id() !== $certificate->user_id) {
-            abort(403);
-        }
     }
 }

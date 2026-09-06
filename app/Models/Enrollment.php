@@ -20,6 +20,12 @@ class Enrollment extends Model
         'completed_at',
     ];
 
+    private ?int $memoCompletedCount = null;
+
+    private ?int $memoLessonsCount = null;
+
+    private ?int $memoProgressPercent = null;
+
     protected function casts(): array
     {
         return [
@@ -45,22 +51,57 @@ class Enrollment extends Model
 
     public function completedLessonsCount(): int
     {
-        return $this->lessonProgress()->count();
+        if ($this->memoCompletedCount !== null) {
+            return $this->memoCompletedCount;
+        }
+
+        if (array_key_exists('lesson_progress_count', $this->attributes)) {
+            return $this->memoCompletedCount = (int) $this->attributes['lesson_progress_count'];
+        }
+
+        if ($this->relationLoaded('lessonProgress')) {
+            return $this->memoCompletedCount = $this->lessonProgress->count();
+        }
+
+        return $this->memoCompletedCount = $this->lessonProgress()->count();
+    }
+
+    public function lessonsCount(): int
+    {
+        if ($this->memoLessonsCount !== null) {
+            return $this->memoLessonsCount;
+        }
+
+        $course = $this->course;
+
+        if ($course && array_key_exists('lessons_count', $course->getAttributes())) {
+            return $this->memoLessonsCount = (int) $course->lessons_count;
+        }
+
+        if ($course && $course->relationLoaded('lessons')) {
+            return $this->memoLessonsCount = $course->lessons->count();
+        }
+
+        return $this->memoLessonsCount = $course?->lessons()->count() ?? 0;
     }
 
     public function progressPercent(): int
     {
-        $total = $this->course->lessons()->count();
-
-        if ($total === 0) {
-            return 0;
+        if ($this->memoProgressPercent !== null) {
+            return $this->memoProgressPercent;
         }
 
-        return (int) round(($this->completedLessonsCount() / $total) * 100);
+        $total = $this->lessonsCount();
+
+        if ($total === 0) {
+            return $this->memoProgressPercent = 0;
+        }
+
+        return $this->memoProgressPercent = (int) round(($this->completedLessonsCount() / $total) * 100);
     }
 
     public function allLessonsCompleted(): bool
     {
-        return $this->completedLessonsCount() >= $this->course->lessons()->count();
+        return $this->completedLessonsCount() >= $this->lessonsCount();
     }
 }

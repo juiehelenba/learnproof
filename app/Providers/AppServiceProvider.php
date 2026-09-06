@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use App\Events\AiTutorInteractionCompleted;
 use App\Listeners\HandleAiTutorInteractionCompleted;
+use App\Models\Certificate;
 use App\Models\Course;
+use App\Policies\CertificatePolicy;
 use App\Policies\CoursePolicy;
 use App\Services\Ai\AiTutorService;
 use App\Services\Ai\CourseContextBuilder;
@@ -23,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Course::class, CoursePolicy::class);
+        Gate::policy(Certificate::class, CertificatePolicy::class);
 
         Event::listen(
             AiTutorInteractionCompleted::class,

@@ -33,7 +33,8 @@ Route::get('/cursos/{course:slug}', [CourseController::class, 'show'])->name('co
 Route::get('/dashboard', function () {
     $enrollments = auth()->user()
         ->enrollments()
-        ->with('course')
+        ->with(['course' => fn ($q) => $q->withCount('lessons')])
+        ->withCount('lessonProgress')
         ->latest()
         ->get();
 
