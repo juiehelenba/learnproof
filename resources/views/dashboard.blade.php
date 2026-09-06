@@ -15,9 +15,21 @@
                     que conquistou. Cada curso tem aulas sequenciais, avaliação final e certificado verificável
                     ao ser aprovado.
                 </p>
-                <a href="{{ route('courses.index') }}" class="mt-5 inline-block bg-white text-indigo-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition">
-                    Explorar catálogo de cursos
-                </a>
+                <div class="mt-5 flex flex-wrap gap-3">
+                    <a href="{{ route('courses.index') }}" class="inline-block bg-white text-indigo-700 px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition">
+                        Explorar catálogo de cursos
+                    </a>
+                    @if (Auth::user()->isStaff())
+                        <a href="{{ route('instructor.metrics') }}" class="inline-block bg-indigo-500/40 text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:bg-indigo-500/60 transition border border-white/30">
+                            Ver métricas
+                        </a>
+                    @endif
+                </div>
+                <ol class="mt-6 grid gap-2 text-sm text-indigo-100/90 max-w-xl list-decimal list-inside">
+                    <li>Matricule-se em um curso do catálogo</li>
+                    <li>Conclua as aulas na ordem sugerida</li>
+                    <li>Passe no quiz e receba o certificado verificável</li>
+                </ol>
             </div>
 
             <section>
