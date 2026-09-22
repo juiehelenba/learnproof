@@ -40,4 +40,28 @@ return [
         // Fallback de nota mínima quando o quiz não define a sua.
         'min_quiz_score' => (int) env('CERTIFICATE_MIN_SCORE', 70),
     ],
+
+    /*
+    | Iniciativa interna "Cada um ensina" — textos do painel /instrutor/equipe
+    */
+    'team' => [
+        'invite_message' => <<<'TEXT'
+Pessoal, estou montando uma biblioteca de microconteúdos na plataforma LearnProof: cada um escolhe um tema que domina, escreve ou grava em cerca de 20 minutos, e publicamos com quiz no final. A ideia é disponibilizar para alunos como material complementar. Quem topa ser voluntário nos primeiros temas? Eu apoio na publicação e na montagem da avaliação.
+TEXT,
+        'author_steps' => [
+            'Escolha um tema que você explica bem no dia a dia.',
+            'Produza o conteúdo (Markdown na plataforma, vídeo externo ou bullet points).',
+            'Combine com o organizador a nota mínima e o número de questões do quiz.',
+            'Revise o quiz em ~10 minutos quando receber o rascunho.',
+            'Após publicação, compartilhe o link do curso com quem for consumir.',
+        ],
+        'organizer_steps' => [
+            'Crie o curso como rascunho no painel (Novo curso).',
+            'Cadastre aulas na ordem sugerida e a avaliação final com questões.',
+            'Peça ao autor revisar enunciados e alternativas corretas.',
+            'Publique o curso quando conteúdo e quiz estiverem validados.',
+            'Acompanhe matrículas, conclusões e tutor de IA em Métricas.',
+            'Antes de apresentar à gestão, rode: php artisan learnproof:demo',
+        ],
+    ],
 ];

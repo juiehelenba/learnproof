@@ -11,4 +11,8 @@
        class="px-3 py-1.5 rounded-md {{ ($active ?? '') === 'metrics' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
         Métricas
     </a>
+    <a href="{{ route('instructor.team') }}"
+       class="px-3 py-1.5 rounded-md {{ ($active ?? '') === 'team' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+        Equipe
+    </a>
 </nav>

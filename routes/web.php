@@ -8,6 +8,7 @@ use App\Http\Controllers\Instructor\CourseController as InstructorCourseControll
 use App\Http\Controllers\Instructor\LessonController as InstructorLessonController;
 use App\Http\Controllers\Instructor\MetricsController as InstructorMetricsController;
 use App\Http\Controllers\Instructor\QuizController as InstructorQuizController;
+use App\Http\Controllers\Instructor\TeamGuideController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
@@ -72,6 +73,7 @@ Route::middleware(['auth', 'verified', 'role:admin,instructor'])
     ->name('instructor.')
     ->group(function () {
         Route::get('/metricas', InstructorMetricsController::class)->name('metrics');
+        Route::get('/equipe', TeamGuideController::class)->name('team');
 
         Route::get('/cursos', [InstructorCourseController::class, 'index'])->name('courses.index');
         Route::get('/cursos/criar', [InstructorCourseController::class, 'create'])->name('courses.create');
