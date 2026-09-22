@@ -8,17 +8,25 @@ use Illuminate\Console\Command;
 
 class LearnProofMetricsCommand extends Command
 {
-    protected $signature = 'learnproof:metrics {--days=7 : Janela em dias (1, 7 ou 30)}';
+    protected $signature = 'learnproof:metrics
+                            {--days=7 : Janela em dias (1, 7 ou 30)}
+                            {--csv= : Caminho do arquivo CSV (ex.: storage/app/metricas.csv)}';
 
     protected $description = 'Exibe métricas operacionais do LearnProof (IA, certificados, fila)';
 
     public function handle(MetricsService $metrics, HealthCheckService $health): int
     {
-        $days = (int) $this->option('days');
-        $days = in_array($days, [1, 7, 30], true) ? $days : 7;
-
+        $days = $metrics->normalizeDays((int) $this->option('days'));
         $data = $metrics->dashboard($days);
         $status = $health->check();
+
+        $csvPath = $this->option('csv');
+
+        if (filled($csvPath)) {
+            $absolute = $this->resolveCsvPath((string) $csvPath);
+            file_put_contents($absolute, $metrics->toCsv($days));
+            $this->info("CSV salvo em: {$absolute}");
+        }
 
         $this->info("LearnProof — métricas ({$days} dias) · health: {$status['status']}");
         $this->newLine();
@@ -39,5 +47,14 @@ class LearnProofMetricsCommand extends Command
         );
 
         return self::SUCCESS;
+    }
+
+    private function resolveCsvPath(string $path): string
+    {
+        if (str_starts_with($path, DIRECTORY_SEPARATOR) || preg_match('/^[A-Za-z]:\\\\/', $path) === 1) {
+            return $path;
+        }
+
+        return base_path($path);
     }
 }

@@ -73,6 +73,7 @@ Route::middleware(['auth', 'verified', 'role:admin,instructor'])
     ->name('instructor.')
     ->group(function () {
         Route::get('/metricas', InstructorMetricsController::class)->name('metrics');
+        Route::get('/metricas/export', [InstructorMetricsController::class, 'export'])->name('metrics.export');
         Route::get('/equipe', TeamGuideController::class)->name('team');
 
         Route::get('/cursos', [InstructorCourseController::class, 'index'])->name('courses.index');

@@ -18,13 +18,17 @@
                     Dados reais de uso — IA, certificados, fila e saúde dos serviços.
                     Atualizado em {{ \Illuminate\Support\Carbon::parse($metrics['generated_at'])->format('d/m/Y H:i') }}.
                 </p>
-                <div class="flex gap-2 text-sm">
+                <div class="flex flex-wrap items-center gap-2 text-sm">
                     @foreach ([1, 7, 30] as $option)
                         <a href="{{ route('instructor.metrics', ['days' => $option]) }}"
                            class="px-3 py-1 rounded-md {{ $days === $option ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200' }}">
                             {{ $option }}d
                         </a>
                     @endforeach
+                    <a href="{{ route('instructor.metrics.export', ['days' => $days]) }}"
+                       class="px-3 py-1 rounded-md border border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30">
+                        Exportar CSV
+                    </a>
                 </div>
             </div>
 

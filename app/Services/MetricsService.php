@@ -14,11 +14,17 @@ use Illuminate\Support\Facades\Schema;
 
 class MetricsService
 {
+    public function normalizeDays(int $days): int
+    {
+        return in_array($days, [1, 7, 30], true) ? $days : 7;
+    }
+
     /**
      * @return array<string, mixed>
      */
     public function dashboard(int $days = 7): array
     {
+        $days = $this->normalizeDays($days);
         $since = now()->subDays($days)->startOfDay();
 
         return [
@@ -32,6 +38,67 @@ class MetricsService
             'ai_by_course' => $this->aiByCourse($since),
             'generated_at' => now()->toIso8601String(),
         ];
+    }
+
+    /**
+     * CSV plano para apresentar ao gestor (sem PII além do necessário).
+     */
+    public function toCsv(int $days = 7): string
+    {
+        $data = $this->dashboard($days);
+        $rows = [
+            ['section', 'metric', 'value'],
+            ['meta', 'period_days', $data['period_days']],
+            ['meta', 'generated_at', $data['generated_at']],
+            ['meta', 'since', $data['since']],
+            ['learning', 'courses_published', $data['learning']['courses_published']],
+            ['learning', 'courses_draft', $data['learning']['courses_draft']],
+            ['learning', 'enrollments_total', $data['learning']['enrollments_total']],
+            ['learning', 'enrollments_period', $data['learning']['enrollments_period']],
+            ['learning', 'completions_total', $data['learning']['completions_total']],
+            ['learning', 'quiz_attempts_period', $data['learning']['quiz_attempts_period']],
+            ['learning', 'quiz_pass_rate_period', $data['learning']['quiz_pass_rate_period'] ?? ''],
+            ['ai', 'interactions', $data['ai']['interactions']],
+            ['ai', 'fallbacks', $data['ai']['fallbacks']],
+            ['ai', 'fallback_rate', $data['ai']['fallback_rate'] ?? ''],
+            ['ai', 'avg_latency_ms', $data['ai']['avg_latency_ms'] ?? ''],
+            ['ai', 'prompt_tokens', $data['ai']['prompt_tokens']],
+            ['ai', 'completion_tokens', $data['ai']['completion_tokens']],
+            ['ai', 'estimated_cost_usd', $data['ai']['estimated_cost_usd']],
+            ['certificates', 'total', $data['certificates']['total']],
+            ['certificates', 'anchored', $data['certificates']['anchored']],
+            ['certificates', 'simulated', $data['certificates']['simulated']],
+            ['certificates', 'pending', $data['certificates']['pending']],
+            ['queue', 'connection', $data['queue']['connection']],
+            ['queue', 'pending_jobs', $data['queue']['pending_jobs'] ?? ''],
+            ['queue', 'failed_jobs', $data['queue']['failed_jobs'] ?? ''],
+        ];
+
+        foreach ($data['ai_by_course'] as $row) {
+            $rows[] = [
+                'ai_by_course',
+                $row['course_title'],
+                sprintf(
+                    'total=%d;fallbacks=%d;fallback_rate=%s;avg_latency_ms=%s',
+                    $row['total'],
+                    $row['fallbacks'],
+                    $row['fallback_rate'] ?? '',
+                    $row['avg_latency_ms'] ?? '',
+                ),
+            ];
+        }
+
+        $handle = fopen('php://temp', 'r+');
+
+        foreach ($rows as $row) {
+            fputcsv($handle, $row);
+        }
+
+        rewind($handle);
+        $csv = stream_get_contents($handle) ?: '';
+        fclose($handle);
+
+        return $csv;
     }
 
     /**
