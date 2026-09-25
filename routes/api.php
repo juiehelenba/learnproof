@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AiTutorController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\CourseController;
+use App\Http\Controllers\Api\V1\EnrollmentController;
 use App\Http\Controllers\Api\V1\OpenApiController;
 use Illuminate\Support\Facades\Route;
 
@@ -21,6 +22,12 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [AuthController::class, 'me'])->name('me');
         Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+        Route::post('/courses/{course:slug}/enroll', [EnrollmentController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('courses.enroll');
+        Route::get('/courses/{course:slug}/progress', [EnrollmentController::class, 'progress'])
+            ->name('courses.progress');
 
         Route::middleware('throttle:20,1')->group(function () {
             Route::get('/courses/{course:slug}/ai/history', [AiTutorController::class, 'history'])

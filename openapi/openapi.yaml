@@ -16,6 +16,7 @@ servers:
 tags:
   - name: Auth
   - name: Courses
+  - name: Enrollment
   - name: AI Tutor
   - name: Staff
 
@@ -88,6 +89,40 @@ components:
           items:
             $ref: '#/components/schemas/Lesson'
         enrolled:
+          type: boolean
+
+    Enrollment:
+      type: object
+      properties:
+        id:
+          type: integer
+        course:
+          type: object
+          properties:
+            id:
+              type: integer
+            title:
+              type: string
+            slug:
+              type: string
+        enrolled_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        progress_percent:
+          type: integer
+        lessons_completed:
+          type: integer
+        lessons_total:
+          type: integer
+        completed_lesson_slugs:
+          type: array
+          items:
+            type: string
+        has_certificate:
           type: boolean
 
     AiChatMessage:
@@ -288,6 +323,70 @@ paths:
           description: Curso em rascunho sem permissão
         '404':
           description: Não encontrado
+
+  /courses/{slug}/enroll:
+    post:
+      summary: Matricular no curso
+      description: Idempotente — se já matriculado, devolve a matrícula existente (`meta.created=false`).
+      tags: [Enrollment]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Matrícula criada ou já existente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Enrollment'
+                  meta:
+                    type: object
+                    properties:
+                      api_version:
+                        type: string
+                      created:
+                        type: boolean
+        '401':
+          description: Não autenticado
+        '403':
+          description: Curso não publicado
+
+  /courses/{slug}/progress:
+    get:
+      summary: Progresso do aluno no curso
+      tags: [Enrollment]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Progresso da matrícula
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Enrollment'
+                  meta:
+                    $ref: '#/components/schemas/Meta'
+        '401':
+          description: Não autenticado
+        '404':
+          description: Sem matrícula neste curso
 
   /courses/{slug}/ai/history:
     get:

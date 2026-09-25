@@ -44,6 +44,8 @@ class OpenApiController extends Controller
                     'POST /api/v1/logout',
                     'GET /api/v1/courses',
                     'GET /api/v1/courses/{slug}',
+                    'POST /api/v1/courses/{slug}/enroll',
+                    'GET /api/v1/courses/{slug}/progress',
                     'GET /api/v1/courses/{slug}/ai/history',
                     'POST /api/v1/courses/{slug}/ai/chat',
                     'GET /api/v1/staff/ping',
