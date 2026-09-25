@@ -15,6 +15,9 @@ return [
         // Estimativa de custo USD por 1M tokens (gpt-4o-mini aproximado).
         'price_prompt_per_1m' => (float) env('AI_PRICE_PROMPT_PER_1M', 0.15),
         'price_completion_per_1m' => (float) env('AI_PRICE_COMPLETION_PER_1M', 0.60),
+        // 0 desativa o limite. Protege custo da API OpenAI por aluno/dia.
+        'max_interactions_per_day' => (int) env('AI_MAX_INTERACTIONS_PER_DAY', 40),
+        'max_estimated_cost_usd_per_day' => (float) env('AI_MAX_COST_USD_PER_DAY', 0.50),
     ],
 
     'blockchain' => [

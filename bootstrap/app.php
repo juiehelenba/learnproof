@@ -4,6 +4,7 @@ use App\Console\Commands\BlockchainSetupCommand;
 use App\Console\Commands\BlockchainTestAnchorCommand;
 use App\Console\Commands\LearnProofDemoCommand;
 use App\Console\Commands\LearnProofMetricsCommand;
+use App\Exceptions\AiUsageLimitExceededException;
 use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -38,7 +39,11 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->report(function (Throwable $e) {
-            if ($e instanceof ValidationException || $e instanceof HttpExceptionInterface) {
+            if (
+                $e instanceof ValidationException
+                || $e instanceof HttpExceptionInterface
+                || $e instanceof AiUsageLimitExceededException
+            ) {
                 return false;
             }
 

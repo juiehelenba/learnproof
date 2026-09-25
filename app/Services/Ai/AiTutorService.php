@@ -26,10 +26,13 @@ class AiTutorService
 {
     public function __construct(
         private CourseContextBuilder $contextBuilder,
+        private AiUsageLimiter $usageLimiter,
     ) {}
 
     public function chat(User $user, Course $course, string $message): array
     {
+        $this->usageLimiter->assertCanUse($user);
+
         $startedAt = microtime(true);
         $contextMeta = $this->contextBuilder->snapshotMeta($course);
         $systemPrompt = $this->contextBuilder->systemPrompt($course);
