@@ -15,4 +15,10 @@
        class="px-3 py-1.5 rounded-md {{ ($active ?? '') === 'team' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
         Equipe
     </a>
+    @if (Auth::user()?->isAdmin())
+        <a href="{{ route('instructor.users.index') }}"
+           class="px-3 py-1.5 rounded-md {{ ($active ?? '') === 'users' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+            Usuários
+        </a>
+    @endif
 </nav>

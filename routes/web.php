@@ -9,6 +9,7 @@ use App\Http\Controllers\Instructor\LessonController as InstructorLessonControll
 use App\Http\Controllers\Instructor\MetricsController as InstructorMetricsController;
 use App\Http\Controllers\Instructor\QuizController as InstructorQuizController;
 use App\Http\Controllers\Instructor\TeamGuideController;
+use App\Http\Controllers\Instructor\UserController as InstructorUserController;
 use App\Http\Controllers\LessonController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuizController;
@@ -93,6 +94,11 @@ Route::middleware(['auth', 'verified', 'role:admin,instructor'])
         Route::put('/cursos/{course:slug}/quiz', [InstructorQuizController::class, 'update'])->name('quiz.update');
         Route::post('/cursos/{course:slug}/questoes', [InstructorQuizController::class, 'storeQuestion'])->name('questions.store');
         Route::delete('/cursos/{course:slug}/questoes/{question}', [InstructorQuizController::class, 'destroyQuestion'])->name('questions.destroy');
+
+        Route::middleware('role:admin')->group(function () {
+            Route::get('/usuarios', [InstructorUserController::class, 'index'])->name('users.index');
+            Route::patch('/usuarios/{user}/papel', [InstructorUserController::class, 'updateRole'])->name('users.role');
+        });
     });
 
 Route::middleware('auth')->group(function () {
