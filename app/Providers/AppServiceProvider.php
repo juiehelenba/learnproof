@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Events\AiTutorInteractionCompleted;
+use App\Events\CertificateAnchored;
 use App\Listeners\HandleAiTutorInteractionCompleted;
+use App\Listeners\HandleCertificateAnchored;
 use App\Models\Certificate;
 use App\Models\Course;
 use App\Policies\CertificatePolicy;
@@ -30,6 +32,11 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(
             AiTutorInteractionCompleted::class,
             HandleAiTutorInteractionCompleted::class,
+        );
+
+        Event::listen(
+            CertificateAnchored::class,
+            HandleCertificateAnchored::class,
         );
     }
 }

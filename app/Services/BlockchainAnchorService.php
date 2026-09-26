@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\CertificateAnchored;
 use App\Jobs\AnchorCertificateJob;
 use App\Models\Certificate;
 use Illuminate\Support\Facades\Cache;
@@ -32,16 +33,11 @@ class BlockchainAnchorService
         $txHash = $this->anchorHash($certificate->content_hash);
 
         if ($txHash !== '') {
-            $certificate->update([
-                'blockchain_tx_hash' => $txHash,
-                'blockchain_network' => config('learnproof.blockchain.network'),
-            ]);
-
-            Log::info('learnproof.blockchain.anchored', [
-                'uuid' => $certificate->uuid,
-                'tx_hash' => $txHash,
-                'network' => $certificate->blockchain_network,
-            ]);
+            $this->persistAnchor(
+                $certificate,
+                $txHash,
+                (string) config('learnproof.blockchain.network'),
+            );
         }
 
         return $txHash;
@@ -139,10 +135,30 @@ class BlockchainAnchorService
     {
         $txHash = '0x'.Str::lower(Str::random(64));
 
+        return $this->persistAnchor(
+            $certificate,
+            $txHash,
+            'mock-'.config('learnproof.blockchain.network'),
+        );
+    }
+
+    private function persistAnchor(Certificate $certificate, string $txHash, string $network): string
+    {
         $certificate->update([
             'blockchain_tx_hash' => $txHash,
-            'blockchain_network' => 'mock-'.config('learnproof.blockchain.network'),
+            'blockchain_network' => $network,
         ]);
+
+        $certificate = $certificate->fresh();
+
+        Log::info('learnproof.blockchain.anchored', [
+            'uuid' => $certificate->uuid,
+            'tx_hash' => $txHash,
+            'network' => $network,
+            'simulated' => $certificate->isSimulatedAnchor(),
+        ]);
+
+        CertificateAnchored::dispatch($certificate);
 
         return $txHash;
     }
