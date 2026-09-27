@@ -2,7 +2,7 @@
 
 Plataforma SaaS de microcursos com quiz, certificado verificável, blockchain (mock/real) e tutor de IA contextualizado.
 
-Documentação de produto: [`PROJETO.md`](PROJETO.md).
+Documentação de produto: [`PROJETO.md`](PROJETO.md) · Deploy: [`DEPLOY.md`](DEPLOY.md).
 
 ## Destaque — Tutor de IA (Course → Context → Tutor)
 

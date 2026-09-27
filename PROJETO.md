@@ -27,7 +27,8 @@ Autor: Julie (iniciativa colaborativa)
 15. [Como apresentar à gestão](#15-como-apresentar-à-gestão)
 16. [Guia operacional para a equipe](#16-guia-operacional-para-a-equipe)
 17. [Como executar localmente](#17-como-executar-localmente)
-18. [Anexos](#18-anexos)
+18. [Deploy e produção](#18-deploy-e-produção)
+19. [Anexos](#19-anexos)
 
 ---
 
@@ -695,7 +696,19 @@ Sem a chave, o tutor funciona em **modo demonstração**.
 
 ---
 
-## 18. Anexos
+## 18. Deploy e produção
+
+Guia operacional completo (checklist go-live, `.env`, fila, monitoramento, rollback):
+
+- [`DEPLOY.md`](DEPLOY.md)
+- Template: [`.env.production.example`](.env.production.example)
+- Verificação rápida: `composer run prod:check` (ou `php artisan learnproof:prod-check`)
+
+Endpoints: `GET /up` (load balancer) e `GET /health` (DB, cache, fila, IA, blockchain).
+
+---
+
+## 19. Anexos
 
 ### A. Glossário
 
